@@ -1,4 +1,4 @@
-name: Automated E-commerce Tests
+name: Automated E-commerce Tests (Unit + API + UI)
 
 on:
   push:
@@ -6,7 +6,8 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest # GitHub sẽ mở một máy ảo Linux
+
     steps:
     - name: Lay code ve may ao
       uses: actions/checkout@v4
@@ -16,11 +17,25 @@ jobs:
       with:
         python-version: "3.11"
 
-    - name: Cài dat Pytest
+    # BƯỚC MỚI CỰC KỲ QUAN TRỌNG: Cài đặt trình duyệt Chrome thực tế vào máy ảo Linux
+    - name: Cài dat Google Chrome Browser
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y google-chrome-stable
+
+    - name: Cài dat các thư vien (pytest, selenium, webdriver-manager)
       run: |
         python -m pip install --upgrade pip
-        pip install pytest
+        pip install -r requirements.txt
 
-    - name: Chay Pytest
+    - name: Chay toàn bo Test Case (Unit, Integration, Functional, E2E API)
       run: |
         pytest test_cart.py -v
+
+    # BƯỚC MỚI: Chạy riêng Test Case UI Selenium
+    - name: Chay Test UI Selenium (Chế độ ngầm - Headless)
+      # Chúng ta dùng biến môi trường để code biết là đang chạy trên CI
+      env:
+        CI: true 
+      run: |
+        pytest test_ui_purchase.py -v -s
